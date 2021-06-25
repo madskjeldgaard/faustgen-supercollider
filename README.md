@@ -5,7 +5,9 @@ Author: Mads Kjeldgaard
 Livecode Faust
 
 ## Status
-The UGen is able to parse faust code and make sound with it (but is not yet able to receive faust dsp code externally)
+Proof of concept.
+
+[Updates will be posted here](https://scsynth.org/t/wip-faustgen-a-ugen-for-interpreting-faust-code/4029)
 
 ### Requirements
 
