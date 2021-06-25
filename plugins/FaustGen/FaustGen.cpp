@@ -41,8 +41,10 @@ void FaustGen::makeFactoryAndDsp(char *theCode) {
   m_factory = createDSPFactoryFromString(name, theCode, argc, argv, "",
                                          m_errorString, optimize);
 
+  // If a factory cannot be created it is usually because of (syntax) errors in
+  // the faust code
   if (!m_factory) {
-    Print("Could not create FAUST factory \n");
+
     std::cout << m_errorString << std::endl;
 
     // Setting clear function to be the calculation function when syntax or
@@ -57,8 +59,7 @@ void FaustGen::makeFactoryAndDsp(char *theCode) {
 
       const auto dspcode = m_factory->getDSPCode();
 
-      std::cout << "faust code used: \n"
-                << "\t" << dspcode << std::endl;
+      std::cout << dspcode << std::endl;
 
       std::cout << "Compile options: \n"
                 << m_factory->getCompileOptions() << std::endl;
