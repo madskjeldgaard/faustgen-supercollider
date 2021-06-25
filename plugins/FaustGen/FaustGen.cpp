@@ -106,9 +106,7 @@ void FaustGen::next(int nSamples) {
   // Flush faust output buffer
   // @FIXME probably not necessary
   for (size_t out_num; out_num < m_numoutputs; out_num++) {
-    for (size_t i = 0; i < nSamples; i++) {
       memset(faustoutputs[out_num], 0.0, nSamples * sizeof(FAUSTFLOAT));
-    }
   }
 
   // compute faust code
