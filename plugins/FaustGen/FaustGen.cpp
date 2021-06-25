@@ -29,11 +29,7 @@ struct FaustCommandData {
 
 FaustData faustData;
 
-FaustGen::FaustGen() {
-  // @TODO: This should be moved outside of the ugen's constructor, perhaps in a
-  // seperate superCollider class the Faust code to compile as a string (could
-  // be in a file too)
-  std::string theCode = "import(\"stdfaust.lib\"); process = no.pink_noise;";
+void FaustGen::makeFactoryAndDsp(char *theCode) {
 
   auto optimize = -1;
 
@@ -44,6 +40,7 @@ FaustGen::FaustGen() {
   const auto name = "faustgen";
   m_factory = createDSPFactoryFromString(name, theCode, argc, argv, "",
                                          m_errorString, optimize);
+
   if (!m_factory) {
     Print("Could not create FAUST factory \n");
     std::cout << m_errorString << std::endl;
@@ -101,15 +98,22 @@ FaustGen::FaustGen() {
       Print("samplerate: \n");
       Print("%d \n", m_dsp->getSampleRate());
     }
+  };
 
-    // Insert instance into global data space
-    id = static_cast<int>(in0(InputName::Id));
-    std::pair<int, FaustGen *> instance(id, this);
-    faustData.instances.insert(instance);
+  mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
+}
 
-    mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
-    next(1);
-  }
+// @TODO check if factory already exists, if it does do something that allocates
+// less
+void FaustGen::evaluateCode(char *code) { makeFactoryAndDsp(code); };
+
+FaustGen::FaustGen() {
+
+  // Insert instance into global data space
+  id = static_cast<int>(in0(InputName::Id));
+  std::pair<int, FaustGen *> instance(id, this);
+  faustData.instances.insert(instance);
+  mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
 }
 
 FaustGen::~FaustGen() {
@@ -117,6 +121,8 @@ FaustGen::~FaustGen() {
   delete m_dsp;
   /* delete m_ui; */
   deleteDSPFactory(m_factory);
+
+  faustData.instances.erase(id);
 }
 
 void FaustGen::printSomething() {
@@ -145,7 +151,7 @@ bool cmdStage2(World *world, void *inUserData) {
   auto thisId = myCmdData->id;
   auto instance =
       myCmdData->pluginData->instances.at(thisId); //->printSomething();
-  instance->printSomething();
+  instance->evaluateCode(myCmdData->code);
 
   return true;
 }
