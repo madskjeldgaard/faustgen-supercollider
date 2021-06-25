@@ -67,24 +67,37 @@ FaustGen::~FaustGen() {
 
 void FaustGen::next(int nSamples) {
   /* const FAUSTFLOAT *input = in(0); */
-  float *outbuf = out(0);
-
-  FAUSTFLOAT **faustinputs[0][nSamples];
-  FAUSTFLOAT **faustoutputs[1][nSamples];
 
   // Copy inputs to faust buffer
   /* for (size_t i = 0; i < nSamples; i++) { */
   /*   faustinputs[0][i] = input[i]; */
   /* } */
 
+  // Flush faust input buffer
+  /* for (size_t in_num; in_num < m_numinputs; in_num++) { */
+  /*   for (size_t i = 0; i < nSamples; i++) { */
+  /*     memset(faustinputs[in_num], 0.0, nSamples * sizeof(FAUSTFLOAT)); */
+  /*   } */
+  /* } */
+
+  // Flush faust output buffer
+  // @FIXME probably not necessary
+  for (size_t out_num; out_num < m_numoutputs; out_num++) {
+    for (size_t i = 0; i < nSamples; i++) {
+      memset(faustoutputs[out_num], 0.0, nSamples * sizeof(FAUSTFLOAT));
+    }
+  }
+
   // compute faust code
   m_dsp->compute(nSamples, (FAUSTFLOAT **)faustinputs,
                  (FAUSTFLOAT **)faustoutputs);
 
   // Copy to output
-  for (size_t i = 0; i < nSamples; i++) {
-    /* Print("hello\n"); */
-    outbuf[i] = 0; // faustoutputs[0][i];
+  for (size_t out_num; out_num < m_numoutputs; out_num++) {
+    for (size_t i = 0; i < nSamples; i++) {
+      /* out(out_num)[i] = *faustoutputs[out_num][i]; */
+      out(out_num)[i] = 0;
+    }
   }
 }
 } // namespace FaustGen
