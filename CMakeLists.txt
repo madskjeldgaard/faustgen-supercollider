@@ -64,6 +64,12 @@ endif()
 ####################################################################################################
 # Begin target FaustGen
 
+include(FaustLib.cmake)
+
+# include_directories(/usr/include/faust)
+# target_include_directories("FaustGen_name}_scsynth" PUBLIC /usr/include/faust)
+# target_link_libraries("FaustGen_scsynth" /usr/include/faust)
+
 set(FaustGen_cpp_files
     plugins/FaustGen/FaustGen.hpp
     plugins/FaustGen/FaustGen.cpp
@@ -82,6 +88,19 @@ sc_add_server_plugin(
     "${FaustGen_sc_files}"
     "${FaustGen_schelp_files}"
 )
+
+## Link the Pure Data external with faustlib
+include_directories(${PROJECT_SOURCE_DIR}/faust/architecture)
+add_dependencies("FaustGen_scsynth" staticlib)
+add_dependencies("FaustGen_supernova" staticlib)
+
+target_link_libraries("FaustGen_scsynth" staticlib)
+target_link_libraries("FaustGen_supernova" staticlib)
+
+## Link the Pure Data external with llvm
+find_package(LLVM REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 # End target FaustGen
 ####################################################################################################
