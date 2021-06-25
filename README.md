@@ -2,7 +2,7 @@
 
 Author: Mads Kjeldgaard
 
-Livecode Faust
+Livecode [Faust](faust.grame.fr/) in [SuperCollider](supercollider.github.io/) using an embedded [Faust compiler](https://faustdoc.grame.fr/manual/embedding/).
 
 ## Status
 Basic interpretation works but far from done.
