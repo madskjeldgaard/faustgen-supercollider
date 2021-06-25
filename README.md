@@ -5,7 +5,7 @@ Author: Mads Kjeldgaard
 Livecode Faust
 
 ## Status
-Proof of concept.
+Basic interpretation works but far from done.
 
 [Updates will be posted here](https://scsynth.org/t/wip-faustgen-a-ugen-for-interpreting-faust-code/4029)
 
