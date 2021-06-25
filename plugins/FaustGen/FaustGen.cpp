@@ -13,7 +13,7 @@ constexpr bool debug_messages = true;
 
 FaustGen::FaustGen() {
   // the Faust code to compile as a string (could be in a file too)
-  std::string theCode = "import(\"stdfaust.lib\") process = no.noise;";
+  std::string theCode = "import(\"stdfaust.lib\"); process = no.noise;";
   std::string m_errorString;
 
   auto optimize = -1;
@@ -97,37 +97,9 @@ FaustGen::~FaustGen() {
 
 void FaustGen::clear(int nSamples) { ClearUnitOutputs(this, nSamples); }
 void FaustGen::next(int nSamples) {
-  /* const FAUSTFLOAT *input = in(0); */
-
-  // Copy inputs to faust buffer
-  /* for (size_t i = 0; i < nSamples; i++) { */
-  /*   faustinputs[0][i] = input[i]; */
-  /* } */
-
-  // Flush faust input buffer
-  /* for (size_t in_num; in_num < m_numinputs; in_num++) { */
-  /*   for (size_t i = 0; i < nSamples; i++) { */
-  /*     memset(faustinputs[in_num], 0.0, nSamples * sizeof(FAUSTFLOAT)); */
-  /*   } */
-  /* } */
-
-  // Flush faust output buffer
-  // @FIXME probably not necessary
-  for (size_t out_num; out_num < m_numoutputs; out_num++) {
-    memset(faustoutputs[out_num], 0.0, nSamples * sizeof(FAUSTFLOAT));
-  }
-
   // compute faust code
-  m_dsp->compute(nSamples, (FAUSTFLOAT **)faustinputs,
-                 (FAUSTFLOAT **)faustoutputs);
-
-  // Copy to output
-  for (size_t out_num; out_num < m_numoutputs; out_num++) {
-    for (size_t i = 0; i < nSamples; i++) {
-      /* out(out_num)[i] = *faustoutputs[out_num][i]; */
-      out(out_num)[i] = 0;
-    }
-  }
+  m_dsp->compute(nSamples, (FAUSTFLOAT **)this->mInBuf,
+                 (FAUSTFLOAT **)this->mOutBuf);
 }
 } // namespace FaustGen
 
