@@ -3,11 +3,13 @@
 
 #include "FaustGen.hpp"
 #include "SC_PlugIn.hpp"
+#include <iostream>
 #include <string>
 
 static InterfaceTable *ft;
 
 namespace FaustGen {
+constexpr bool debug_messages = true;
 
 FaustGen::FaustGen() {
   // the Faust code to compile as a string (could be in a file too)
@@ -27,10 +29,28 @@ FaustGen::FaustGen() {
     Print("Could not create FAUST factory \n");
     return;
   } else {
-    Print("Created faust factory \n");
-    /* const char* dspcode = m_factory->getDSPCode(); */
-    /* m_factory->getCompileOptions */
-    /* Print(); */
+    // Post debug info
+    if (debug_messages) {
+      Print("Created faust factory \n");
+
+      const auto dspcode = m_factory->getDSPCode();
+
+      std::cout << "faust code used: \n"
+                << "\t" << dspcode << std::endl;
+
+      std::cout << "Compile options: \n"
+                << m_factory->getCompileOptions() << std::endl;
+
+      Print("Include path names: \n");
+      for (auto path : m_factory->getIncludePathnames())
+        std::cout << "\t" << path << std::endl;
+
+      Print("Library list: \n");
+      for (auto libb : m_factory->getLibraryList())
+        std::cout << "\t" << libb << std::endl;
+
+      std::cout << m_factory->getTarget() << std::endl;
+    }
   }
 
   // creating the DSP instance for interfacing
@@ -42,16 +62,19 @@ FaustGen::FaustGen() {
   if (!m_dsp) {
     Print("Could not create FAUST dsp \n");
   } else {
+
     // Post debug info
-    Print("Created faust dsp instance \n");
-    Print("name:");
-    Print(name);
-    Print("\nnum inputs: \n");
-    Print("%d \n", m_dsp->getNumInputs());
-    Print("num outputs: \n");
-    Print("%d \n", m_dsp->getNumOutputs());
-    Print("samplerate: \n");
-    Print("%d \n", m_dsp->getSampleRate());
+    if (debug_messages) {
+      Print("Created faust dsp instance \n");
+      Print("name:");
+      Print(name);
+      Print("\nnum inputs: \n");
+      Print("%d \n", m_dsp->getNumInputs());
+      Print("num outputs: \n");
+      Print("%d \n", m_dsp->getNumOutputs());
+      Print("samplerate: \n");
+      Print("%d \n", m_dsp->getSampleRate());
+    }
 
     mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
     next(1);
