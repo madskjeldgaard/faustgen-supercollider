@@ -12,7 +12,11 @@ namespace FaustGen {
 constexpr bool debug_messages = true;
 
 // Data structure
-struct FaustData {};
+struct FaustData {
+  /* std::vector<FaustGen *> instances; */
+  FaustGen *instance;
+};
+
 struct FaustCommandData {
   FaustData *pluginData;
 
@@ -94,6 +98,9 @@ FaustGen::FaustGen() {
       Print("%d \n", m_dsp->getSampleRate());
     }
 
+    /* faustData.instances.push_back(this); */
+    faustData.instance = this;
+
     mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
     next(1);
   }
@@ -105,6 +112,8 @@ FaustGen::~FaustGen() {
   /* delete m_ui; */
   deleteDSPFactory(m_factory);
 }
+
+void FaustGen::printSomething() { Print("Something \n"); }
 
 void FaustGen::clear(int nSamples) { ClearUnitOutputs(this, nSamples); }
 void FaustGen::next(int nSamples) {
@@ -121,15 +130,9 @@ void FaustGen::next(int nSamples) {
 
 // stage2 is non real time
 bool cmdStage2(World *world, void *inUserData) {
-  // user data is the command.
   FaustCommandData *myCmdData = (FaustCommandData *)inUserData;
 
-  // just print out the values
-  Print("cmdstage2\n");
-  /* Print("cmdStage2 a %g  b %g  x %g  y %g  name %s\n",
-   * myCmdData->myPlugin->a, */
-  /*       myCmdData->myPlugin->b, myCmdData->x, myCmdData->y, myCmdData->name);
-   */
+  myCmdData->pluginData->instance->printSomething();
 
   return true;
 }
@@ -138,13 +141,6 @@ bool cmdStage2(World *world, void *inUserData) {
 bool cmdStage3(World *world, void *inUserData) {
   // user data is the command.
   FaustCommandData *myCmdData = (FaustCommandData *)inUserData;
-  Print("cmdstage3\n");
-
-  // just print out the values
-  /* Print("cmdStage3 a %g  b %g  x %g  y %g  name %s\n",
-   * myCmdData->myPlugin->a, */
-  /*       myCmdData->myPlugin->b, myCmdData->x, myCmdData->y, myCmdData->name);
-   */
 
   // scsynth will perform completion message after this returns
   return true;
@@ -152,28 +148,14 @@ bool cmdStage3(World *world, void *inUserData) {
 
 // stage4 is non real time - sends done if stage4 returns true
 bool cmdStage4(World *world, void *inUserData) {
-  // user data is the command.
   FaustCommandData *myCmdData = (FaustCommandData *)inUserData;
-  Print("cmdstage4\n");
-
-  // just print out the values
-  /* Print("cmdStage4 a %g  b %g  x %g  y %g  name %s\n",
-   * myCmdData->myPlugin->a, */
-  /*       myCmdData->myPlugin->b, myCmdData->x, myCmdData->y, myCmdData->name);
-   */
 
   // scsynth will send /done after this returns
   return true;
 }
 
 void cmdCleanup(World *world, void *inUserData) {
-  // user data is the command.
   FaustCommandData *faustCmdData = (FaustCommandData *)inUserData;
-
-  /* Print("cmdCleanup a %g  b %g  x %g  y %g  name %s\n",
-   * faustCmdData->faust->a, */
-  /*       faustCmdData->myPlugin->b, faustCmdData->x, faustCmdData->y, */
-  /*       faustCmdData->name); */
 
   RTFree(world, faustCmdData->name); // free the string
   RTFree(world, faustCmdData);       // free command data
@@ -182,7 +164,6 @@ void cmdCleanup(World *world, void *inUserData) {
 
 void receiveNewFaustCode(World *inWorld, void *inUserData,
                          struct sc_msg_iter *args, void *replyAddr) {
-  Print("->cmdDemoFunc %p\n", inUserData);
 
   // user data is the plug-in's user data.
   FaustData *thePlugInData = (FaustData *)inUserData;
@@ -211,20 +192,16 @@ void receiveNewFaustCode(World *inWorld, void *inUserData,
   int msgSize = args->getbsize();
   char *msgData = 0;
   if (msgSize) {
-    // allocate space for completion message
-    // scsynth will delete the completion message for you.
+    // allocate space for completion message scsynth will delete the completion
+    // message for you.
     msgData = (char *)RTAlloc(inWorld, msgSize);
-    args->getb(msgData, msgSize); // copy completion message.
+    // copy completion message.
+    args->getb(msgData, msgSize);
   }
 
-  DoAsynchronousCommand(
-      inWorld, replyAddr, "fausteval", (void *)faustCmdData,
-      (AsyncStageFn)cmdStage2, // stage2 is non real time
-      (AsyncStageFn)cmdStage3, // stage3 is real time - completion msg
-                               // performed if stage3 returns true
-      (AsyncStageFn)cmdStage4, // stage4 is non real time - sends done if
-                               // stage4 returns true
-      cmdCleanup, msgSize, msgData);
+  DoAsynchronousCommand(inWorld, replyAddr, "fausteval", (void *)faustCmdData,
+                        (AsyncStageFn)cmdStage2, (AsyncStageFn)cmdStage3,
+                        (AsyncStageFn)cmdStage4, cmdCleanup, msgSize, msgData);
 }
 
 } // namespace FaustGen
