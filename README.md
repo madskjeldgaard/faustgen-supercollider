@@ -5,8 +5,7 @@ Author: Mads Kjeldgaard
 Livecode Faust
 
 ## Status
-It does not work yet...
-
+The UGen is able to parse faust code and make sound with it (but is not yet able to receive faust dsp code externally)
 
 ### Requirements
 
