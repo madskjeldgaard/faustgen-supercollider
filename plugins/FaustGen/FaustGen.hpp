@@ -19,9 +19,11 @@ public:
   ~FaustGen();
 
 private:
-  int m_numoutputs {1}, m_numinputs{0};
+  int m_numoutputs{1}, m_numinputs{0};
 
   void next(int nSamples);
+  void clear(int nSamples);
+
   dsp *m_dsp;
   llvm_dsp_factory *m_factory;
 
