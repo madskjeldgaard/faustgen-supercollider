@@ -1,0 +1,1 @@
+python /home/mads/code/supercollider/tools/cmake_gen/generate_server_plugin_cmake.py -P "FaustGen" -p "plugins/FaustGen" -a "Mads Kjeldgaard"
