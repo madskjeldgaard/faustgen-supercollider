@@ -13,7 +13,7 @@ constexpr bool debug_messages = true;
 
 FaustGen::FaustGen() {
   // the Faust code to compile as a string (could be in a file too)
-  std::string theCode = "import(\"stdfaust.lib\"); process = no.noise;";
+  std::string theCode = "import(\"stdfaust.lib\") process = no.noise;";
   std::string m_errorString;
 
   auto optimize = -1;
@@ -27,6 +27,12 @@ FaustGen::FaustGen() {
                                          m_errorString, optimize);
   if (!m_factory) {
     Print("Could not create FAUST factory \n");
+    std::cout << m_errorString << std::endl;
+
+    // Setting clear function to be the calculation function when syntax or
+    // other errors occur in the faust code interpretation
+    mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
+
     return;
   } else {
     // Post debug info
@@ -61,6 +67,7 @@ FaustGen::FaustGen() {
 
   if (!m_dsp) {
     Print("Could not create FAUST dsp \n");
+    mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
   } else {
 
     // Post debug info
@@ -88,6 +95,7 @@ FaustGen::~FaustGen() {
   deleteDSPFactory(m_factory);
 }
 
+void FaustGen::clear(int nSamples) { ClearUnitOutputs(this, nSamples); }
 void FaustGen::next(int nSamples) {
   /* const FAUSTFLOAT *input = in(0); */
 
@@ -106,7 +114,7 @@ void FaustGen::next(int nSamples) {
   // Flush faust output buffer
   // @FIXME probably not necessary
   for (size_t out_num; out_num < m_numoutputs; out_num++) {
-      memset(faustoutputs[out_num], 0.0, nSamples * sizeof(FAUSTFLOAT));
+    memset(faustoutputs[out_num], 0.0, nSamples * sizeof(FAUSTFLOAT));
   }
 
   // compute faust code
