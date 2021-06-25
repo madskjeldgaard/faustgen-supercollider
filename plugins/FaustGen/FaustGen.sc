@@ -1,10 +1,8 @@
 FaustGen : UGen {
-	*ar { |input|
-		/* TODO */
-		^this.multiNew('audio', input);
+	*ar { |id|
+		^this.multiNew('audio', id);
 	}
 	checkInputs {
-		/* TODO */
 		^this.checkValidInputs;
 	}
 }

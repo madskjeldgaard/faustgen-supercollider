@@ -13,14 +13,18 @@ constexpr bool debug_messages = true;
 
 // Data structure
 struct FaustData {
-  /* std::vector<FaustGen *> instances; */
+  std::unordered_map<int, FaustGen *> instances;
   FaustGen *instance;
 };
 
 struct FaustCommandData {
   FaustData *pluginData;
 
-  char *name;
+  int id;
+  // @TODO how to use nodeID to look up instances?
+  int nodeID;
+
+  char *code;
 };
 
 FaustData faustData;
@@ -98,8 +102,10 @@ FaustGen::FaustGen() {
       Print("%d \n", m_dsp->getSampleRate());
     }
 
-    /* faustData.instances.push_back(this); */
-    faustData.instance = this;
+    // Insert instance into global data space
+    id = static_cast<int>(in0(InputName::Id));
+    std::pair<int, FaustGen *> instance(id, this);
+    faustData.instances.insert(instance);
 
     mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
     next(1);
@@ -113,7 +119,10 @@ FaustGen::~FaustGen() {
   deleteDSPFactory(m_factory);
 }
 
-void FaustGen::printSomething() { Print("Something \n"); }
+void FaustGen::printSomething() {
+  std::cout << id << ": "
+            << "something!" << std::endl;
+}
 
 void FaustGen::clear(int nSamples) { ClearUnitOutputs(this, nSamples); }
 void FaustGen::next(int nSamples) {
@@ -132,7 +141,11 @@ void FaustGen::next(int nSamples) {
 bool cmdStage2(World *world, void *inUserData) {
   FaustCommandData *myCmdData = (FaustCommandData *)inUserData;
 
-  myCmdData->pluginData->instance->printSomething();
+  /* myCmdData->pluginData->instance->printSomething(); */
+  auto thisId = myCmdData->id;
+  auto instance =
+      myCmdData->pluginData->instances.at(thisId); //->printSomething();
+  instance->printSomething();
 
   return true;
 }
@@ -157,7 +170,7 @@ bool cmdStage4(World *world, void *inUserData) {
 void cmdCleanup(World *world, void *inUserData) {
   FaustCommandData *faustCmdData = (FaustCommandData *)inUserData;
 
-  RTFree(world, faustCmdData->name); // free the string
+  RTFree(world, faustCmdData->code); // free the string
   RTFree(world, faustCmdData);       // free command data
   // scsynth will delete the completion message for you.
 }
@@ -171,22 +184,29 @@ void receiveNewFaustCode(World *inWorld, void *inUserData,
   // allocate command data, free it in cmdCleanup.
   FaustCommandData *faustCmdData =
       (FaustCommandData *)RTAlloc(inWorld, sizeof(FaustCommandData));
+
   faustCmdData->pluginData = thePlugInData;
 
-  // float arguments
-  /* faustCmdData->x = args->getf(); */
-  /* faustCmdData->y = args->getf(); */
+  // ID arguments
+  faustCmdData->id = args->geti();
+  faustCmdData->nodeID = args->geti();
 
-  // how to pass a string argument:
   const char *newCode = args->gets(); // get the string argument
   if (newCode) {
-    faustCmdData->name = (char *)RTAlloc(
+    faustCmdData->code = (char *)RTAlloc(
         inWorld,
         strlen(newCode) + 1); // allocate space, free it in cmdCleanup. */
-    strcpy(faustCmdData->name, newCode);
+    strcpy(faustCmdData->code, newCode);
 
     std::cout << "Received new code: " << newCode << std::endl;
   }
+
+  if (debug_messages) {
+    Print("Global dictionary of instances of Faust UGens: ");
+    for (auto &it : faustData.instances) {
+      std::cout << "\t" << it.first << ": " << it.second << std::endl;
+    }
+  };
 
   // how to pass a completion message
   int msgSize = args->getbsize();

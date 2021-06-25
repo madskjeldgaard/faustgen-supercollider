@@ -76,9 +76,12 @@ set(FaustGen_cpp_files
 )
 set(FaustGen_sc_files
     plugins/FaustGen/FaustGen.sc
+	plugins/FaustGen/FaustGenController.sc
+
 )
 set(FaustGen_schelp_files
     plugins/FaustGen/FaustGen.schelp
+	plugins/FaustGen/FaustGenController.schelp
 )
 
 sc_add_server_plugin(
