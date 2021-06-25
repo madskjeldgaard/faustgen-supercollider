@@ -1,8 +1,12 @@
-# FaustGen
+# [WORK IN PROGRESS] FaustGen
 
 Author: Mads Kjeldgaard
 
 Livecode Faust
+
+## Status
+It does not work yet...
+
 
 ### Requirements
 

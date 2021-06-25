@@ -14,47 +14,48 @@ FaustGen::FaustGen() {
   std::string theCode = "import(\"stdfaust.lib\"); process = no.noise;";
   std::string m_errorString;
 
-  // @fixme Not sure about this
-  auto optimize = -4;
+  auto optimize = -1;
 
   auto argc = 0;
-  const char **argv;
+  const char **argv = NULL;
 
   // compiling in memory (createDSPFactoryFromFile could be used alternatively)
   const auto name = "faustgen";
   m_factory = createDSPFactoryFromString(name, theCode, argc, argv, "",
                                          m_errorString, optimize);
-  if (m_factory == nullptr) {
-    auto errmsg = "Could not create FAUST dsp factory \n";
-    Print(errmsg);
+  if (!m_factory) {
+    Print("Could not create FAUST factory \n");
     return;
+  } else {
+    Print("Created faust factory \n");
+    /* const char* dspcode = m_factory->getDSPCode(); */
+    /* m_factory->getCompileOptions */
+    /* Print(); */
   }
 
   // creating the DSP instance for interfacing
   m_dsp = m_factory->createDSPInstance();
 
-  // creating a generic UI to interact with the DSP
-  /* my_ui *m_ui = new MyUI(); */
-
-  // linking the interface to the DSP instance
-  /* m_dsp->buildUserInterface(m_ui); */
-
   // initializing the DSP instance with the SR
   m_dsp->init(static_cast<int>(sampleRate()));
 
-  // Post debug info
-  Print("Created faust dsp instance \n");
-  Print("name:");
-  Print(name);
-  Print("\nnum inputs: \n");
-  Print("%d \n", m_dsp->getNumInputs());
-  Print("num outputs: \n");
-  Print("%d \n", m_dsp->getNumOutputs());
-  Print("samplerate: \n");
-  Print("%d \n", m_dsp->getSampleRate());
+  if (!m_dsp) {
+    Print("Could not create FAUST dsp \n");
+  } else {
+    // Post debug info
+    Print("Created faust dsp instance \n");
+    Print("name:");
+    Print(name);
+    Print("\nnum inputs: \n");
+    Print("%d \n", m_dsp->getNumInputs());
+    Print("num outputs: \n");
+    Print("%d \n", m_dsp->getNumOutputs());
+    Print("samplerate: \n");
+    Print("%d \n", m_dsp->getSampleRate());
 
-  mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
-  next(1);
+    mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
+    next(1);
+  }
 }
 
 FaustGen::~FaustGen() {
@@ -65,11 +66,11 @@ FaustGen::~FaustGen() {
 }
 
 void FaustGen::next(int nSamples) {
-  const FAUSTFLOAT *input = in(0);
+  /* const FAUSTFLOAT *input = in(0); */
   float *outbuf = out(0);
 
-  FAUSTFLOAT **faustinputs{};
-  FAUSTFLOAT **faustoutputs{};
+  FAUSTFLOAT **faustinputs[0][nSamples];
+  FAUSTFLOAT **faustoutputs[1][nSamples];
 
   // Copy inputs to faust buffer
   /* for (size_t i = 0; i < nSamples; i++) { */
@@ -77,12 +78,13 @@ void FaustGen::next(int nSamples) {
   /* } */
 
   // compute faust code
-  m_dsp->compute(nSamples, faustinputs, faustoutputs);
+  m_dsp->compute(nSamples, (FAUSTFLOAT **)faustinputs,
+                 (FAUSTFLOAT **)faustoutputs);
 
   // Copy to output
   for (size_t i = 0; i < nSamples; i++) {
-    Print("hello\n");
-    outbuf[i] = faustoutputs[0][i];
+    /* Print("hello\n"); */
+    outbuf[i] = 0; // faustoutputs[0][i];
   }
 }
 } // namespace FaustGen
