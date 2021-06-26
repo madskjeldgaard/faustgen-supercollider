@@ -64,7 +64,7 @@ endif()
 ####################################################################################################
 # Begin target FaustGen
 
-include(FaustLib.cmake)
+include(cmake_modules/FaustLib.cmake)
 
 # include_directories(/usr/include/faust)
 # target_include_directories("FaustGen_name}_scsynth" PUBLIC /usr/include/faust)
