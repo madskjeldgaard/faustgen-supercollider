@@ -29,16 +29,19 @@ struct FaustCommandData {
 
 FaustData faustData;
 
-void FaustGen::parse(char *theCode) {
+/**********************************************
+ *
+ * PARSER
+ *
+ * *******************************************/
 
+bool FaustGen::parse(char *theCode) {
+
+  // Create factory
   auto optimize = -1;
-
   auto argc = 0;
   const char **argv = NULL;
-
-  // compiling in memory (createDSPFactoryFromFile could be used alternatively)
   auto name = "faustgen";
-
   m_factory = createDSPFactoryFromString(name, theCode, argc, argv, "",
                                          m_errorString, optimize);
 
@@ -47,12 +50,7 @@ void FaustGen::parse(char *theCode) {
   if (!m_factory) {
 
     std::cout << m_errorString << std::endl;
-
-    // Setting clear function to be the calculation function when syntax or
-    // other errors occur in the faust code interpretation
-    mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
-
-    return;
+    return false;
   } else {
     // Post debug info
     if (debug_messages) {
@@ -79,35 +77,32 @@ void FaustGen::parse(char *theCode) {
 
   // creating the DSP instance for interfacing
   m_dsp = m_factory->createDSPInstance();
-
-  // initializing the DSP instance with the SR
   m_dsp->init(static_cast<int>(sampleRate()));
 
   if (!m_dsp) {
     Print("Could not create FAUST dsp \n");
-    mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
+    return false;
 
     // Check number of outputs to avoid crashing
   } else if (m_dsp->getNumOutputs() != this->mNumOutputs) {
 
     std::cout << "Error: Number of faust code outputs does not correspond to "
                  "UGen's number of outputs \n"
-              << "num UGEN outputs: " << this->mNumOutputs << std::endl;
+              << "Num UGEN outputs: " << this->mNumOutputs << std::endl;
 
     printDSPInfo();
-    mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
+    return false;
 
     // Check number of inputs to avoid crashing
-  } else if (m_dsp->getNumInputs() !=
-             (this->mNumInputs - InputName::NumParameters)) {
+  } else if (m_dsp->getNumInputs() > mNumAudioInputs) {
 
     std::cout << "Error: Number of faust code inputs does not correspond to "
                  "UGen's number of inputs \n"
-              << "num UGEN inputs: "
+              << "Num UGEN inputs: "
               << this->mNumInputs - InputName::NumParameters << std::endl;
 
     printDSPInfo();
-    mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
+    return false;
   } else {
 
     // Post debug info
@@ -115,26 +110,41 @@ void FaustGen::parse(char *theCode) {
       printDSPInfo();
     }
 
-    mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
+    return true;
   };
 }
 
 void FaustGen::printDSPInfo() {
-  Print("\nNum faust DSP inputs: \n");
-  Print("%d \n", m_dsp->getNumInputs());
-  Print("Num faust DSP outputs: \n");
-  Print("%d \n", m_dsp->getNumOutputs());
-  Print("Faust DSP Samplerate: \n");
-  Print("%d \n", m_dsp->getSampleRate());
+  std::cout << "Num faust DSP inputs:" << m_dsp->getNumInputs() << std::endl
+            << "Num faust DSP outputs: " << m_dsp->getNumOutputs() << std::endl
+            << "Faust DSP Samplerate: " << m_dsp->getSampleRate() << std::endl
+            << "Num UGen inputs: " << this->mNumInputs << std::endl
+            << "UGen audio inputs: " << mNumAudioInputs << std::endl
+            << "Num UGen outputs: " << this->mNumOutputs << std::endl;
 }
 
 void FaustGen::evaluateCode(char *code) {
   // @TODO check if factory already exists, if it does do something that
   // allocates less
-  parse(code);
+  bool result = parse(code);
+
+  if (result) {
+    mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
+  } else {
+    // Setting clear function to be the calculation function when syntax or
+    // other errors occur in the faust code interpretation
+    mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
+  }
 };
 
+/**********************************************
+ *
+ * UGen guts
+ *
+ * *******************************************/
+
 FaustGen::FaustGen() {
+  mNumAudioInputs = this->mNumInputs - InputName::NumParameters;
 
   // Insert instance into global data space
   id = static_cast<int>(in0(InputName::Id));
@@ -154,8 +164,17 @@ FaustGen::~FaustGen() {
 
 void FaustGen::clear(int nSamples) { ClearUnitOutputs(this, nSamples); }
 void FaustGen::next(int nSamples) {
+
+  float **faustInputs;
+
+  /* Remove inputs used by the UGen at init */
+  for (size_t in_num; in_num < mNumAudioInputs; in_num++) {
+    const auto offset = mNumAudioInputs;
+    faustInputs[in_num] = this->mInBuf[in_num + offset];
+  }
+
   // compute faust code
-  m_dsp->compute(nSamples, (FAUSTFLOAT **)this->mInBuf,
+  m_dsp->compute(nSamples, (FAUSTFLOAT **)faustInputs,
                  (FAUSTFLOAT **)this->mOutBuf);
 }
 
@@ -179,21 +198,10 @@ bool cmdStage2(World *world, void *inUserData) {
 }
 
 // stage3 is real time - completion msg performed if stage3 returns true
-bool cmdStage3(World *world, void *inUserData) {
-  // user data is the command.
-  FaustCommandData *myCmdData = (FaustCommandData *)inUserData;
-
-  // scsynth will perform completion message after this returns
-  return true;
-}
+bool cmdStage3(World *world, void *inUserData) { return true; }
 
 // stage4 is non real time - sends done if stage4 returns true
-bool cmdStage4(World *world, void *inUserData) {
-  FaustCommandData *myCmdData = (FaustCommandData *)inUserData;
-
-  // scsynth will send /done after this returns
-  return true;
-}
+bool cmdStage4(World *world, void *inUserData) { return true; }
 
 void cmdCleanup(World *world, void *inUserData) {
   FaustCommandData *faustCmdData = (FaustCommandData *)inUserData;
