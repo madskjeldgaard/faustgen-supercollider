@@ -29,7 +29,7 @@ struct FaustCommandData {
 
 FaustData faustData;
 
-void FaustGen::makeFactoryAndDsp(char *theCode) {
+void FaustGen::parse(char *theCode) {
 
   auto optimize = -1;
 
@@ -37,7 +37,8 @@ void FaustGen::makeFactoryAndDsp(char *theCode) {
   const char **argv = NULL;
 
   // compiling in memory (createDSPFactoryFromFile could be used alternatively)
-  const auto name = "faustgen";
+  auto name = "faustgen";
+
   m_factory = createDSPFactoryFromString(name, theCode, argc, argv, "",
                                          m_errorString, optimize);
 
@@ -85,28 +86,53 @@ void FaustGen::makeFactoryAndDsp(char *theCode) {
   if (!m_dsp) {
     Print("Could not create FAUST dsp \n");
     mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
+
+    // Check number of outputs to avoid crashing
+  } else if (m_dsp->getNumOutputs() != this->mNumOutputs) {
+
+    std::cout << "Error: Number of faust code outputs does not correspond to "
+                 "UGen's number of outputs \n"
+              << "num UGEN outputs: " << this->mNumOutputs << std::endl;
+
+    printDSPInfo();
+    mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
+
+    // Check number of inputs to avoid crashing
+  } else if (m_dsp->getNumInputs() !=
+             (this->mNumInputs - InputName::NumParameters)) {
+
+    std::cout << "Error: Number of faust code inputs does not correspond to "
+                 "UGen's number of inputs \n"
+              << "num UGEN inputs: "
+              << this->mNumInputs - InputName::NumParameters << std::endl;
+
+    printDSPInfo();
+    mCalcFunc = make_calc_function<FaustGen, &FaustGen::clear>();
   } else {
 
     // Post debug info
     if (debug_messages) {
-      Print("Created faust dsp instance \n");
-      Print("name:");
-      Print(name);
-      Print("\nnum inputs: \n");
-      Print("%d \n", m_dsp->getNumInputs());
-      Print("num outputs: \n");
-      Print("%d \n", m_dsp->getNumOutputs());
-      Print("samplerate: \n");
-      Print("%d \n", m_dsp->getSampleRate());
+      printDSPInfo();
     }
-  };
 
-  mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
+    mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
+  };
 }
 
-// @TODO check if factory already exists, if it does do something that allocates
-// less
-void FaustGen::evaluateCode(char *code) { makeFactoryAndDsp(code); };
+void FaustGen::printDSPInfo() {
+  Print("\nNum faust DSP inputs: \n");
+  Print("%d \n", m_dsp->getNumInputs());
+  Print("Num faust DSP outputs: \n");
+  Print("%d \n", m_dsp->getNumOutputs());
+  Print("Faust DSP Samplerate: \n");
+  Print("%d \n", m_dsp->getSampleRate());
+}
+
+void FaustGen::evaluateCode(char *code) {
+  // @TODO check if factory already exists, if it does do something that
+  // allocates less
+  parse(code);
+};
 
 FaustGen::FaustGen() {
 
@@ -124,11 +150,6 @@ FaustGen::~FaustGen() {
   deleteDSPFactory(m_factory);
 
   faustData.instances.erase(id);
-}
-
-void FaustGen::printSomething() {
-  std::cout << id << ": "
-            << "something!" << std::endl;
 }
 
 void FaustGen::clear(int nSamples) { ClearUnitOutputs(this, nSamples); }

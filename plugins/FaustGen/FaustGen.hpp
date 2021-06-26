@@ -19,14 +19,14 @@ public:
   ~FaustGen();
 
   /* void evalCmd(FaustGen *unit, sc_msg_iter *args); */
-  void printSomething();
+  void printDSPInfo();   
   void evaluateCode(char *code);
   int id;
 
 private:
   int m_numoutputs{1}, m_numinputs{0};
 
-  void makeFactoryAndDsp(char *theCode);
+  void parse(char *theCode);
   void next(int nSamples);
   void clear(int nSamples);
   dsp *m_dsp;
@@ -34,7 +34,7 @@ private:
 
   std::string m_errorString;
 
-  enum InputName { Id };
+  enum InputName { Id, NumParameters};
 
   /* FAUSTFLOAT **faustinputs[MAX_FAUST_INPUTS]; */
   /* FAUSTFLOAT **faustoutputs[MAX_FAUST_OUTPUTS]; */
