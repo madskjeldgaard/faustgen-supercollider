@@ -8,5 +8,11 @@ FaustGenController {
         server.sendMsg('\cmd', '\fausteval', id, nodeId, faustCode)
     }
 
+	<< { arg faustCode; 
+		this.eval(faustCode)
+	}
+
 }
 
+
+Post
