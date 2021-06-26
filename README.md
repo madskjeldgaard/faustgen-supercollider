@@ -19,6 +19,7 @@ Basic interpretation works but far from done.
 Clone the project:
 
     git clone https://github.com/madskjeldgaard/faustgen
+	git submodule update --init --recursive
     cd faustgen
     mkdir build
     cd build
