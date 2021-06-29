@@ -14,7 +14,6 @@ constexpr bool debug_messages = true;
 // Data structure
 struct FaustData {
   std::unordered_map<int, FaustGen *> instances;
-  FaustGen *instance;
 };
 
 struct FaustCommandData {
