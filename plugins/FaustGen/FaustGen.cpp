@@ -126,9 +126,9 @@ void FaustGen::printDSPInfo() {
 void FaustGen::evaluateCode(char *code) {
   // @TODO check if factory already exists, if it does do something that
   // allocates less
-  bool result = parse(code);
+  bool success = parse(code);
 
-  if (result) {
+  if (success) {
     mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
   } else {
     // Setting clear function to be the calculation function when syntax or
@@ -165,17 +165,17 @@ FaustGen::~FaustGen() {
 void FaustGen::clear(int nSamples) { ClearUnitOutputs(this, nSamples); }
 void FaustGen::next(int nSamples) {
 
-  float **faustInputs;
+  FAUSTFLOAT **faustInputs;
 
   /* Remove inputs used by the UGen at init */
-  for (size_t in_num; in_num < mNumAudioInputs; in_num++) {
-    const auto offset = mNumAudioInputs;
-    faustInputs[in_num] = this->mInBuf[in_num + offset];
-  }
+  /* for (size_t in_num; in_num < mNumAudioInputs; in_num++) { */
+  /*   const auto offset = mNumAudioInputs; */
+  /*   faustInputs[in_num] = this->mInBuf[in_num + offset]; */
+  /* } */
+  faustInputs = this->mInBuf;
 
   // compute faust code
-  m_dsp->compute(nSamples, (FAUSTFLOAT **)faustInputs,
-                 (FAUSTFLOAT **)this->mOutBuf);
+  m_dsp->compute(nSamples, faustInputs, (FAUSTFLOAT **)this->mOutBuf);
 }
 
 /**********************************************
@@ -265,7 +265,7 @@ void receiveNewFaustCode(World *inWorld, void *inUserData,
 PluginLoad(FaustGenUGens) {
   // Plugin magic
   ft = inTable;
-  registerUnit<FaustGen::FaustGen>(ft, "FaustGen", false);
+  registerUnit<FaustGen::FaustGen>(ft, "FaustGen", true);
 
   DefinePlugInCmd("fausteval", (PlugInCmdFunc)FaustGen::receiveNewFaustCode,
                   (void *)&FaustGen::faustData);
