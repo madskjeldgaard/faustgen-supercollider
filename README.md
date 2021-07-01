@@ -5,10 +5,16 @@ Livecode [Faust](faust.grame.fr/) in [SuperCollider](supercollider.github.io/) u
 ## Status
 
 [Updates will be posted here](https://scsynth.org/t/wip-faustgen-a-ugen-for-interpreting-faust-code/4029)
+
 ### Requirements
 
 - CMake >= 3.5
 - SuperCollider source code
+
+
+### TODO
+
+See [todo.md](todo.md)
 
 ### Building
 
