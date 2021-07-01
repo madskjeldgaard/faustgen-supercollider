@@ -1,4 +1,6 @@
 #pragma once
+#ifndef FAUST_PLUGCMD
+#define FAUST_PLUGCMD
 
 #include "FaustGen.hpp"
 #include "SC_PlugIn.hpp"
@@ -67,3 +69,4 @@ void receiveNewFaustCode(World *inWorld, void *inUserData,
 
 } // namespace FaustGen
 
+#endif

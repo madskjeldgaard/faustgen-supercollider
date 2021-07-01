@@ -15,12 +15,12 @@ set(CMAKE_CXX_STANDARD 17)
 # load modules
 include(SuperColliderServerPlugin RESULT_VARIABLE server_plugin_found)
 if(NOT server_plugin_found)
-    message(FATAL_ERROR "Could not find server plugin functions module")
+  message(FATAL_ERROR "Could not find server plugin functions module")
 endif()
 
 include(SuperColliderCompilerConfig RESULT_VARIABLE compiler_config_found)
 if(NOT compiler_config_found)
-    message(FATAL_ERROR "Could not find compiler config module")
+  message(FATAL_ERROR "Could not find compiler config module")
 endif()
 
 # Windows - puts redistributable DLLs in install directory
@@ -28,8 +28,10 @@ include(InstallRequiredSystemLibraries)
 
 sc_check_sc_path("${SC_PATH}")
 message(STATUS "Found SuperCollider: ${SC_PATH}")
-set(SC_PATH "${SC_PATH}" CACHE PATH
-    "Path to SuperCollider source. Relative paths are treated as relative to this script" FORCE)
+set(
+  SC_PATH "${SC_PATH}" CACHE PATH
+  "Path to SuperCollider source. Relative paths are treated as relative to this script" FORCE
+)
 
 include("${SC_PATH}/SCVersion.txt")
 message(STATUS "Building plugins for SuperCollider version: ${SC_VERSION}")
@@ -39,8 +41,8 @@ project(${project_name})
 sc_do_initial_compiler_config() # do after setting project so compiler ID is available
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR NOT CMAKE_INSTALL_PREFIX)
-    message(WARNING "No install prefix provided, defaulting to $BUILD_DIR/install")
-    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Install prefix" FORCE)
+  message(WARNING "No install prefix provided, defaulting to $BUILD_DIR/install")
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Install prefix" FORCE)
 endif()
 
 message(STATUS "Install directory set to: ${CMAKE_INSTALL_PREFIX}")
@@ -56,9 +58,9 @@ option(NOVA_SIMD "Build plugins with nova-simd support." ON)
 ####################################################################################################
 # include libraries
 
-if (NOVA_SIMD)
-	add_definitions(-DNOVA_SIMD)
-	include_directories(${SC_PATH}/external_libraries/nova-simd)
+if(NOVA_SIMD)
+  add_definitions(-DNOVA_SIMD)
+  include_directories(${SC_PATH}/external_libraries/nova-simd)
 endif()
 
 ####################################################################################################
@@ -70,28 +72,33 @@ include(cmake_modules/FaustLib.cmake)
 # target_include_directories("FaustGen_name}_scsynth" PUBLIC /usr/include/faust)
 # target_link_libraries("FaustGen_scsynth" /usr/include/faust)
 
-set(FaustGen_cpp_files
-    plugins/FaustGen/FaustGen.hpp
-    plugins/FaustGen/FaustGen.cpp
-	plugins/FaustGen/faustPluginCommand.hpp
-	plugins/FaustGen/faustPluginCommand.cpp
+set(
+  FaustGen_cpp_files
+  plugins/FaustGen/FaustGen.hpp
+  plugins/FaustGen/FaustGen.cpp
+  plugins/FaustGen/faustPluginCommand.hpp
+  plugins/FaustGen/faustPluginCommand.cpp
+  plugins/FaustGen/faustPluginParsing.hpp
+  plugins/FaustGen/faustPluginParsing.cpp
 )
-set(FaustGen_sc_files
-    plugins/FaustGen/FaustGen.sc
-	plugins/FaustGen/FaustGenController.sc
 
+set(
+  FaustGen_sc_files
+  plugins/FaustGen/FaustGen.sc
+  plugins/FaustGen/FaustGenController.sc
 )
-set(FaustGen_schelp_files
-    plugins/FaustGen/FaustGen.schelp
-	plugins/FaustGen/FaustGenController.schelp
+set(
+  FaustGen_schelp_files
+  plugins/FaustGen/FaustGen.schelp
+  plugins/FaustGen/FaustGenController.schelp
 )
 
 sc_add_server_plugin(
-    "FaustGen/FaustGen" # desination directory
-    "FaustGen" # target name
-    "${FaustGen_cpp_files}"
-    "${FaustGen_sc_files}"
-    "${FaustGen_schelp_files}"
+  "FaustGen/FaustGen" # desination directory
+  "FaustGen" # target name
+  "${FaustGen_cpp_files}"
+  "${FaustGen_sc_files}"
+  "${FaustGen_schelp_files}"
 )
 
 ## Link the Pure Data external with faustlib
@@ -113,5 +120,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 ####################################################################################################
 # END PLUGIN TARGET DEFINITION
 ####################################################################################################
+
+message(STATUS "Generating plugin targets done")
 
 message(STATUS "Generating plugin targets done")
