@@ -19,19 +19,18 @@ public:
   ~FaustGen();
 
   /* void evalCmd(FaustGen *unit, sc_msg_iter *args); */
-  void printDSPInfo();   
-  void evaluateCode(char *code);
   int id;
 
   int mNumAudioInputs;
 
-private:
+  void setNewDSP(dsp* newDsp);
 
-  bool parse(char *theCode);
+private:
   void next(int nSamples);
   void clear(int nSamples);
   dsp *m_dsp;
-  llvm_dsp_factory *m_factory;
+  bool m_hasDSP{false};
+  /* llvm_dsp_factory *m_factory; */
 
   std::string m_errorString;
 

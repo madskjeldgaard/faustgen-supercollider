@@ -1,0 +1,5 @@
+- Flexible inputs/outputs
+- Make instance dict RT safe
+- Static assert FAUSTFLOAT == float
+- Make sure to clean up factory and dsp in command data
+- Store DSP objects so that they can be copied to more than one UGen
