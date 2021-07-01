@@ -73,6 +73,8 @@ include(cmake_modules/FaustLib.cmake)
 set(FaustGen_cpp_files
     plugins/FaustGen/FaustGen.hpp
     plugins/FaustGen/FaustGen.cpp
+	plugins/FaustGen/faustPluginCommand.hpp
+	plugins/FaustGen/faustPluginCommand.cpp
 )
 set(FaustGen_sc_files
     plugins/FaustGen/FaustGen.sc
