@@ -68,7 +68,9 @@ FaustGen::FaustGen() {
 
 FaustGen::~FaustGen() {
   // cleaning
-  delete m_dsp;
+  if (m_hasDSP)
+    delete m_dsp;
+
   /* delete m_ui; */
   /* deleteDSPFactory(m_factory); */
 
