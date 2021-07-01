@@ -57,7 +57,7 @@ void FaustGen::setNewDSP(dsp *newDsp) {
 }
 
 FaustGen::FaustGen() {
-  /* mNumAudioInputs = this->mNumInputs - InputName::NumParameters; */
+  mNumAudioInputs = this->mNumInputs - InputName::NumParameters;
 
   // Insert instance into global data space
   id = static_cast<int>(in0(InputName::Id));
