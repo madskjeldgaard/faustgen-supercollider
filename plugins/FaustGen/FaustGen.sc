@@ -1,6 +1,6 @@
 FaustGen : UGen {
-	*ar { |id|
-		^this.multiNew('audio', id);
+	*ar { |id, in1|
+		^this.multiNew('audio', id, in1);
 	}
 
 	// *kr { |id|

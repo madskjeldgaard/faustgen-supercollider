@@ -40,14 +40,14 @@ void FaustGen::setNewDSP(dsp *newDsp) {
     std::cout << "Error: Number of faust code inputs does not correspond to "
                  "UGen's number of inputs \n"
               << "Num UGEN inputs: "
-              << this->mNumInputs - InputName::NumParameters << std::endl;
+              << this->mNumInputs - Inputs::NumPreAudioParameters << std::endl;
     m_hasDSP = false;
     printDSPInfo(newDsp);
   } else {
 
     // If succesful, set the DSP to the new dsp
-	/* // @TODO should this be clone + RTAlloc? */
-	/* m_dsp = (dsp *)RTAlloc(mWorld, sizeof(dsp)); */
+    /* // @TODO should this be clone + RTAlloc? */
+    /* m_dsp = (dsp *)RTAlloc(mWorld, sizeof(dsp)); */
     m_dsp = newDsp;
     m_hasDSP = true;
 
@@ -59,44 +59,65 @@ void FaustGen::setNewDSP(dsp *newDsp) {
 }
 
 FaustGen::FaustGen() {
-  mNumAudioInputs = this->mNumInputs - InputName::NumParameters;
+  mNumAudioInputs = this->mNumInputs - Inputs::NumPreAudioParameters;
+
+  // Initialize temp input buffers
+  for (size_t i = 0; i < MAX_FAUST_INPUTS; i++) {
+    faustinputs[i] = (float **)RTAlloc(mWorld, mBufLength * sizeof(float**));
+    memset(faustinputs[i], 0.0f, mBufLength);
+  }
+
+  // Initialize temp output buffers
+  /* for (size_t i = 0; i < MAX_FAUST_OUTPUTS; i++){ */
+  /* auto bufsize = this->mBufLength; */
+  /* faustoutputs[i] = (float **)RTAlloc(this->mWorld, bufsize * sizeof(float));
+   */
+  /* memset(faustoutputs[i], 0.0f, bufsize); */
+  /* } */
 
   // Insert instance into global data space
-  id = static_cast<int>(in0(InputName::Id));
+  id = static_cast<int>(in0(Inputs::Id));
   std::pair<int, FaustGen *> instance(id, this);
   faustData.instances.insert(instance);
   mCalcFunc = make_calc_function<FaustGen, &FaustGen::next>();
 }
 
 FaustGen::~FaustGen() {
-// @TODO Realtime safe!
-  // cleaning
-  if (m_hasDSP)
-	  delete m_dsp;
-    /* RTFree(mWorld, m_dsp); */
+  m_hasDSP = false;
 
-  /* delete m_ui; */
-  /* deleteDSPFactory(m_factory); */
+  // cleaning
+  // @FIXME: This causes server crash. Because of wrong type?
+  for (size_t i = 0; i < MAX_FAUST_INPUTS; i++) {
+    RTFree(mWorld, faustinputs[i]);
+  };
+
+  if (m_hasDSP)
+    delete m_dsp;
+  /* RTFree(mWorld, m_dsp); */
 
   // @TODO Realtime safe!
   faustData.instances.erase(id);
+
+  /* for (size_t i = 0; i < MAX_FAUST_OUTPUTS; i++){ */
+  /* RTFree(mWorld, faustoutputs[i]); */
+  /* }; */
 }
 
 void FaustGen::clear(int nSamples) { ClearUnitOutputs(this, nSamples); }
 void FaustGen::next(int nSamples) {
 
-  FAUSTFLOAT **faustInputs;
-
   /* Remove inputs used by the UGen at init */
-  /* for (size_t in_num; in_num < mNumAudioInputs; in_num++) { */
-  /*   const auto offset = mNumAudioInputs; */
-  /*   faustInputs[in_num] = this->mInBuf[in_num + offset]; */
-  /* } */
-  faustInputs = this->mInBuf;
+  for (size_t in_num = 0; in_num < mNumAudioInputs; in_num++) {
+    constexpr auto offset = Inputs::NumPreAudioParameters;
+    faustinputs[in_num] = (FAUSTFLOAT **)mInBuf[in_num + offset];
+  }
+
+  /* faustInputs = this->mInBuf; */
 
   // compute faust code
   if (m_hasDSP) {
-    m_dsp->compute(nSamples, faustInputs, (FAUSTFLOAT **)this->mOutBuf);
+    m_dsp->compute(nSamples, (FAUSTFLOAT **)faustinputs,
+                   (FAUSTFLOAT **)this->mOutBuf);
   } else {
     ClearUnitOutputs(this, nSamples);
   };

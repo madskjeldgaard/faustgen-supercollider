@@ -7,8 +7,8 @@
 #include "faust/dsp/libfaust.h"
 #include "faust/dsp/llvm-dsp.h"
 
-/* #define MAX_FAUST_INPUTS 1 */
-/* #define MAX_FAUST_OUTPUTS 1 */
+#define MAX_FAUST_INPUTS 1
+#define MAX_FAUST_OUTPUTS 1
 namespace FaustGen {
 
 class FaustGen : public SCUnit {
@@ -30,15 +30,14 @@ private:
   void clear(int nSamples);
   dsp *m_dsp;
   bool m_hasDSP{false};
-  /* llvm_dsp_factory *m_factory; */
 
   std::string m_errorString;
 
   // only includes non audio params
-  enum InputName { Id, NumParameters };
+  enum Inputs { Id, NumPreAudioParameters };
 
 
-  /* FAUSTFLOAT **faustinputs[MAX_FAUST_INPUTS]; */
+  FAUSTFLOAT **faustinputs[MAX_FAUST_INPUTS];
   /* FAUSTFLOAT **faustoutputs[MAX_FAUST_OUTPUTS]; */
 };
 
