@@ -9,8 +9,15 @@ Livecode [Faust](faust.grame.fr/) in [SuperCollider](supercollider.github.io/) u
 ### Requirements
 
 - CMake >= 3.5
+- LLVM
+- Faust
 - SuperCollider source code
 
+Installing them on Arch based systems using an AUR helper:
+
+```bash
+paru -S faust llvm cmake
+```
 
 ### TODO
 
