@@ -46,6 +46,7 @@ void FaustGen::setNewDSP(dsp *newDsp) {
   } else {
 
     // If succesful, set the DSP to the new dsp
+	// @TODO should this be clone + RTAlloc?
     m_dsp = newDsp;
     m_hasDSP = true;
 
@@ -67,13 +68,15 @@ FaustGen::FaustGen() {
 }
 
 FaustGen::~FaustGen() {
+// @TODO Realtime safe!
   // cleaning
   if (m_hasDSP)
-    delete m_dsp;
+    RTFree(mWorld, m_dsp);
 
   /* delete m_ui; */
   /* deleteDSPFactory(m_factory); */
 
+  // @TODO Realtime safe!
   faustData.instances.erase(id);
 }
 
