@@ -26,7 +26,7 @@ void FaustGen::setNewDSP(dsp *newDsp) {
     m_hasDSP = false;
 
     // Check number of outputs to avoid crashing
-  } else if (newDsp->getNumOutputs() != this->mNumOutputs) {
+  } else if (newDsp->getNumOutputs() > this->mNumOutputs) {
 
     std::cout << "Error: Number of faust code outputs does not correspond to "
                  "UGen's number of outputs \n"
@@ -63,7 +63,7 @@ FaustGen::FaustGen() {
 
   // Initialize temp input buffers
   for (size_t i = 0; i < MAX_FAUST_INPUTS; i++) {
-    faustinputs[i] = (float **)RTAlloc(mWorld, mBufLength * sizeof(float**));
+    faustinputs[i] = (float **)RTAlloc(mWorld, mBufLength * sizeof(float **));
     memset(faustinputs[i], 0.0f, mBufLength);
   }
 
@@ -83,17 +83,18 @@ FaustGen::FaustGen() {
 }
 
 FaustGen::~FaustGen() {
-  m_hasDSP = false;
 
   // cleaning
-  // @FIXME: This causes server crash. Because of wrong type?
-  for (size_t i = 0; i < MAX_FAUST_INPUTS; i++) {
-    RTFree(mWorld, faustinputs[i]);
-  };
+  // @FIXME: This causes server crash.
+  /* for (size_t i = 0; i < MAX_FAUST_INPUTS; i++) { */
+  /* RTFree(mWorld, faustinputs[i]); */
+  /* }; */
 
+  // @TODO realtime safe
   if (m_hasDSP)
+    /* RTFree(mWorld, m_dsp); */
     delete m_dsp;
-  /* RTFree(mWorld, m_dsp); */
+  m_hasDSP = false;
 
   // @TODO Realtime safe!
   faustData.instances.erase(id);

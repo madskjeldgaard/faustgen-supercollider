@@ -7,8 +7,8 @@
 #include "faust/dsp/libfaust.h"
 #include "faust/dsp/llvm-dsp.h"
 
-#define MAX_FAUST_INPUTS 1
-#define MAX_FAUST_OUTPUTS 1
+#define MAX_FAUST_INPUTS 64
+#define MAX_FAUST_OUTPUTS 64
 namespace FaustGen {
 
 class FaustGen : public SCUnit {
@@ -18,7 +18,6 @@ public:
   // Destructor
   ~FaustGen();
 
-  /* void evalCmd(FaustGen *unit, sc_msg_iter *args); */
   int id;
 
   int mNumAudioInputs;
