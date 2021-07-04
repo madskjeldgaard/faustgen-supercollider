@@ -1,9 +1,9 @@
-- Flexible inputs/outputs
 - Make instance dict RT safe
+- Realtime safe free of dsp
 - Use the Synth nodeID properly on the CPP side
 - Mapping/setting Faust parameters from the SC side (see VST plugin's set/map)
 - Static assert FAUSTFLOAT == float
 - Make sure to clean up factory and dsp in command data
 - Store DSP objects so that they can be copied to more than one UGen
-- Parse faust code from files to avoid UDP size limit (use faust's `createDSPFactoryFromFile` for this (see https://faustdoc.grame.fr/manual/embedding/))
+- Parse faust code from files to avoid UDP size limit when using large code chunks (use faust's `createDSPFactoryFromFile` for this (see https://faustdoc.grame.fr/manual/embedding/))
 - When parsing: Check if unit has DSP and release it properly if it does (https://github.com/madskjeldgaard/faustgen-supercollider/commit/d2dcddefe3d13c2aff1cae3ac0cfff9aa0a40688#r52697732)
