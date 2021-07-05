@@ -11,6 +11,9 @@
 #define MAX_FAUST_OUTPUTS 64
 namespace FaustGen {
 
+// Make sure FAUSTFLOAT is a float
+static_assert(sizeof(FAUSTFLOAT) == sizeof(float), "FAUSTFLOAT must be float");
+
 class FaustGen : public SCUnit {
 public:
   FaustGen();
