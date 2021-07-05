@@ -10,6 +10,8 @@
 InterfaceTable *ft;
 
 namespace FaustGen {
+
+
 constexpr bool debug_messages = true;
 
 extern FaustData faustData;
@@ -59,21 +61,7 @@ void FaustGen::setNewDSP(dsp *newDsp) {
 }
 
 FaustGen::FaustGen() {
-  mNumAudioInputs = this->mNumInputs - Inputs::NumPreAudioParameters;
-
-  // Initialize temp input buffers
-  for (size_t i = 0; i < MAX_FAUST_INPUTS; i++) {
-    faustinputs[i] = (float **)RTAlloc(mWorld, mBufLength * sizeof(float **));
-    memset(faustinputs[i], 0.0f, mBufLength);
-  }
-
-  // Initialize temp output buffers
-  /* for (size_t i = 0; i < MAX_FAUST_OUTPUTS; i++){ */
-  /* auto bufsize = this->mBufLength; */
-  /* faustoutputs[i] = (float **)RTAlloc(this->mWorld, bufsize * sizeof(float));
-   */
-  /* memset(faustoutputs[i], 0.0f, bufsize); */
-  /* } */
+  mNumAudioInputs = mNumInputs - Inputs::NumPreAudioParameters;
 
   // Insert instance into global data space
   id = static_cast<int>(in0(Inputs::Id));
@@ -83,12 +71,6 @@ FaustGen::FaustGen() {
 }
 
 FaustGen::~FaustGen() {
-
-  // cleaning
-  // @FIXME: This causes server crash.
-  /* for (size_t i = 0; i < MAX_FAUST_INPUTS; i++) { */
-  /* RTFree(mWorld, faustinputs[i]); */
-  /* }; */
 
   // @TODO realtime safe
   if (m_hasDSP)
@@ -106,19 +88,11 @@ FaustGen::~FaustGen() {
 
 void FaustGen::clear(int nSamples) { ClearUnitOutputs(this, nSamples); }
 void FaustGen::next(int nSamples) {
-
-  /* Remove inputs used by the UGen at init */
-  for (size_t in_num = 0; in_num < mNumAudioInputs; in_num++) {
-    constexpr auto offset = Inputs::NumPreAudioParameters;
-    faustinputs[in_num] = (FAUSTFLOAT **)mInBuf[in_num + offset];
-  }
-
-  /* faustInputs = this->mInBuf; */
-
+	
   // compute faust code
   if (m_hasDSP) {
-    m_dsp->compute(nSamples, (FAUSTFLOAT **)faustinputs,
-                   (FAUSTFLOAT **)this->mOutBuf);
+    m_dsp->compute(nSamples, (FAUSTFLOAT **)mInBuf + Inputs::NumPreAudioParameters,
+                   (FAUSTFLOAT **)mOutBuf);
   } else {
     ClearUnitOutputs(this, nSamples);
   };

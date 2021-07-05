@@ -38,9 +38,6 @@ private:
   // only includes non audio params
   enum Inputs { Id, NumPreAudioParameters };
 
-
-  FAUSTFLOAT **faustinputs[MAX_FAUST_INPUTS];
-  /* FAUSTFLOAT **faustoutputs[MAX_FAUST_OUTPUTS]; */
 };
 
 } // namespace FaustGen
