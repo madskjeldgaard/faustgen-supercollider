@@ -27,15 +27,15 @@ See [todo.md](todo.md)
 
 Clone the project:
 
-    git clone https://github.com/madskjeldgaard/faustgen
-	git submodule update --init --recursive
+    git clone https://github.com/madskjeldgaard/faustgen-supercollider faustgen
     cd faustgen
+	git submodule update --init --recursive
     mkdir build
     cd build
 
 Then, use CMake to configure and build it:
 
-    cmake .. -DCMAKE_BUILD_TYPE=Release
+    cmake .. -DCMAKE_BUILD_TYPE=Release -SC_PATH=<PATH/TO/SC/SOURCE>
     cmake --build . --config Release
     cmake --build . --config Release --target install
 
