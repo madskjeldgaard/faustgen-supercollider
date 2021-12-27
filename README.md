@@ -35,7 +35,7 @@ Clone the project:
 
 Then, use CMake to configure and build it:
 
-    cmake .. -DCMAKE_BUILD_TYPE=Release -SC_PATH=<PATH/TO/SC/SOURCE>
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DSC_PATH=<PATH/TO/SC/SOURCE>
     cmake --build . --config Release
     cmake --build . --config Release --target install
 
