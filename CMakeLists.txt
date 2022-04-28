@@ -121,6 +121,12 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 # END PLUGIN TARGET DEFINITION
 ####################################################################################################
 
+# Install faust examples
+install(
+	DIRECTORY "faust-examples"
+	DESTINATION "FaustGen"
+	)
+
 message(STATUS "Generating plugin targets done")
 
 message(STATUS "Generating plugin targets done")
