@@ -1,26 +1,43 @@
 class:: FaustGen
-summary:: Livecode Faust
-related:: TODO
-categories:: UGens>TODO
+summary:: UGen for embedding Faust compilers
+related:: FaustGenController
+categories:: FaustGen
 
 description::
 
-Livecode Faust
-
+This UGen embeds a faust compiler in a synth graph. This makes it possible to
+dynamically evaluate faust code inside of the synth graph by sending it messages
+using LINK::Classes/FaustGenController::.
 
 classmethods::
 
 method::ar, kr
 
-argument::TODO
+argument::id
+The id (an integer) of the FaustGen.
 
-argument::TODO
+argument::numChansOut
+The number of output channels you want faust to allocate
 
+argument::audioInputs
+A signal array
 
 examples::
 
 code::
+// Make a synth with a FaustGen
+(
+~id = 1;
+Ndef(\flanger, {
+    var sig = PinkNoise.ar(Env.perc.kr(gate: Impulse.kr(1)))!2;
+    FaustGen.ar(~id, numChansOut: 2, audioInputs: sig)
+}).play;
+);
 
-{ FaustGen.ar(/* TODO */) }.play
+// Create a handle for the FaustGen in the synth above
+~faustController = FaustGenController.new(Ndef(\flanger), ~id);
 
+// And evaluate some faust code
+~faustFile = FaustGenController.exampleFiles.at('fgstereoflanger.dsp');
+~faustController.evalFile(~faustFile)
 ::
